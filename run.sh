@@ -1,6 +1,6 @@
 python gpu_monitor.py \
     --interval 60 \
-    --threshold 6000 \
+    --threshold 10000 \
     --once \
     --server_name "NTU_51" \
     --smtp-server "smtp.gmail.com" \

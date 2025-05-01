@@ -48,7 +48,7 @@ def main():
     parser = argparse.ArgumentParser(description="GPU Memory Monitor")
     parser.add_argument("--interval", type=int, default=60, help="Polling interval in seconds")
     parser.add_argument("--threshold", type=int, default=6000, help="Free memory threshold in MB")
-    parser.add_argument("--once", type=bool, default=True, action="store_true", help="Run once and exit")
+    parser.add_argument("--once", action="store_true", help="Run once and exit")
     parser.add_argument("--smtp-server", default="smtp.gmail.com", help="SMTP server address")
     parser.add_argument("--smtp-port", type=int, default=587, help="SMTP server port")
     parser.add_argument("--server_name", default="NTU_51", help="Server name")
