@@ -47,7 +47,7 @@ python gpu_monitor.py
 
 Example with custom settings:
 ```bash
-python gpu_monitor.py --interval 300 --threshold 8000 --server_name "MY_SERVER"
+python gpu_monitor.py --interval 60 --threshold 6000 --once --server_name "MY_SERVER"
 ```
 
 ## How It Works
