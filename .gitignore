@@ -1,2 +1,3 @@
 dev.env
 app.py
+__pycache__/
