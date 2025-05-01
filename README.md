@@ -13,7 +13,7 @@ This Python script monitors NVIDIA GPU memory usage and sends email notification
 
 1. Install the required Python packages:
 ```bash
-pip install python-dotenv pynvml
+pip install -r requirements.txt
 ```
 
 2. Create a `dev.env` file in the project directory with your email credentials:
