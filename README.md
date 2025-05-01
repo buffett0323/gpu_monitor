@@ -29,6 +29,8 @@ SMTP_PASS=your_app_password
 3. Enable 2-Step Verification if not already enabled
 4. Generate an App Password for "Mail"
 
+See Google's guide on generating App Passwords here: https://support.google.com/accounts/answer/185833?hl=en&authuser=1
+
 ## Usage
 
 Run the script with default settings:
