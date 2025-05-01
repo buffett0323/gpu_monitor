@@ -1,64 +1,72 @@
-import smtplib
-import time
 import os
-import socket
+import time
+import smtplib
+import argparse
 from email.mime.text import MIMEText
-from pynvml import *
 from dotenv import load_dotenv
-
-# Load environment variables from dev.env
-load_dotenv('dev.env')
+from pynvml import *
 
 
-# CONFIG
-CHECK_INTERVAL = int(os.getenv('CHECK_INTERVAL', 10))  # seconds
-MEMORY_THRESHOLD_MB = int(os.getenv('MEMORY_THRESHOLD_MB', 6000)) # 6GB
-EMAIL = os.getenv('EMAIL')
-SMTP_SERVER = os.getenv('SMTP_SERVER')
-SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
-SMTP_USER = os.getenv('SMTP_USER')
-SMTP_PASS = os.getenv('SMTP_PASS')
-SERVER_NAME = os.getenv('SERVER_NAME')
 
 
-def send_email(gpu_id, free_mem):
-    msg = MIMEText(f"GPU {gpu_id} has {free_mem} MB free in {SERVER_NAME}!")
-    msg['Subject'] = f'GPU {gpu_id} Memory Available in {SERVER_NAME}'
-    msg['From'] = SMTP_USER
-    msg['To'] = EMAIL
+def send_email(gpu_id, free_mem, args):
+    msg = MIMEText(f"GPU {gpu_id} has {free_mem} MB free!")
+    msg['Subject'] = f'{args.server_name} GPU {gpu_id} Available'
+    msg['From'] = args.smtp_user
+    msg['To'] = args.email
 
-    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+    with smtplib.SMTP(args.smtp_server, args.smtp_port) as server:
         server.starttls()
-        server.login(SMTP_USER, SMTP_PASS)
+        server.login(args.smtp_user, args.smtp_pass)
         server.send_message(msg)
 
 
-
-def check_gpus(sent_email):
+def check_gpus(threshold, args):
     nvmlInit()
     device_count = nvmlDeviceGetCount()
+    notify = False
 
     for i in range(device_count):
         handle = nvmlDeviceGetHandleByIndex(i)
         mem = nvmlDeviceGetMemoryInfo(handle)
-        free_mem_mb = mem.free / 1024**2
+        free_mem_mb = mem.free // 1024**2
 
-        print(f"GPU {i}: Free {free_mem_mb:.2f} MB")
-        
-        
-        if free_mem_mb > MEMORY_THRESHOLD_MB:
-            send_email(i, int(free_mem_mb))
-            print(f"Email sent for GPU {i}")
-            sent_email = True
-            break
+        print(f"GPU {i}: {free_mem_mb:.2f} MB free")
+        if free_mem_mb > threshold:
+            send_email(i, free_mem_mb, args)
+            notify = True
 
     nvmlShutdown()
-    return sent_email
+    return notify
+
+
+
+def main():
+    # Load user-level config from dev.env
+    load_dotenv("dev.env")
+    
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="GPU Memory Monitor")
+    parser.add_argument("--interval", type=int, default=60, help="Polling interval in seconds")
+    parser.add_argument("--threshold", type=int, default=6000, help="Free memory threshold in MB")
+    parser.add_argument("--once", type=bool, default=True, action="store_true", help="Run once and exit")
+    parser.add_argument("--smtp-server", default="smtp.gmail.com", help="SMTP server address")
+    parser.add_argument("--smtp-port", type=int, default=587, help="SMTP server port")
+    parser.add_argument("--server_name", default="NTU_51", help="Server name")
+    
+    # Put those Params in dev.env
+    parser.add_argument("--email", default=os.getenv("EMAIL"), help="Email address")
+    parser.add_argument("--smtp-user", default=os.getenv("SMTP_USER"), help="SMTP user")
+    parser.add_argument("--smtp-pass", default=os.getenv("SMTP_PASS"), help="SMTP password")
+    args = parser.parse_args()
+
+    while True:
+        triggered = check_gpus(args.threshold, args)
+        if args.once or triggered:
+            break
+        time.sleep(args.interval)
+
+
 
 if __name__ == "__main__":
-    sent_email = False
-    
-    while not sent_email:
-        
-        sent_email = check_gpus(sent_email)
-        time.sleep(CHECK_INTERVAL)
+    main()
