@@ -8,7 +8,6 @@ from pynvml import *
 
 
 
-
 def send_email(gpu_id, free_mem, args):
     msg = MIMEText(f"GPU {gpu_id} has {free_mem} MB free!")
     msg['Subject'] = f'{args.server_name} GPU {gpu_id} Available'
